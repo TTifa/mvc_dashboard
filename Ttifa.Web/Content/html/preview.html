@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Preview</title>
+    <link href="/Content/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="/Content/css/article-view.css" rel="stylesheet" />
+</head>
+<body>
+    <section typeof="content">
+        <div style="min-height: 225px;" id="mainer">
+            <div id="mainer-inner">
+                <div id="area-top-view">
+                    <div id="article-mainer">
+                        <div id="area-title-view">
+                            <p id="title_1">
+                                <span class="txt-title-view_1">{title}</span>
+                                <span id="txt-info-title_1" class="txt-info-title_1">
+                                    <span id="author">{author}</span>&nbsp;/&nbsp;&nbsp;<span class="time">发布于 {time}</span>
+                                </span>
+                            </p>
+                            <span class="clearfix"></span>
+                        </div>
+                        <!--#area-part-view(class="hidden", data-part="0", data-parts="1")-->
+                        <div id="area-part-view" data-part="0" data-parts="1">
+                            <div class="l">
+                                <span class="clearfix"></span>
+                            </div>
+                            <span class="clearfix"></span>
+                        </div>
+                        <div id="area-player">
+                            {content}
+                        </div>
+                        <div id="ad-player-view"></div><div id="area-info-view">
+                            <div id="block-info-top" class="block">
+                                <div class="mainer">
+
+                                </div>
+                            </div><span class="clearfix"></span><div id="block-info-bottom" class="block">
+
+                            </div><span class="clearfix"></span>
+                        </div><span class="clearfix"></span>
+                    </div>
+                </div>
+            </div>
+        </div><span class="clearfix"></span><div id="footer">
+        </div>
+    </section>
+    <script type="text/javascript">
+        (function () {
+            var pc = document.getElementById('pc');
+            pc && (pc.style.display = "block");
+        })();
+    </script>
+</body>
+</html>

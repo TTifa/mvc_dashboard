@@ -1,0 +1,133 @@
+﻿
+@{
+    ViewBag.Title = "UMEditor";
+}
+@section header{
+    <!-- bootstrap wysihtml5 - text editor -->
+    <link href="~/Content/umeditor/themes/default/css/umeditor.min.css" rel="stylesheet" />
+    <script src="~/Content/umeditor/umeditor.config.js"></script>
+    <script src="~/Content/umeditor/umeditor.min.js"></script>
+    <script src="~/Content/umeditor/lang/zh-cn/zh-cn.js"></script>
+}
+<section class="content-header">
+    <h1>
+        编辑文章
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/Home/Index"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Article</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="row">
+        <div class="col-md-10">
+            <div class="box box-primary">
+                <div class="box-body">
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input class="form-control" type="text" id="title" placeholder="文章标题">
+                    </div>
+                    <div class="form-group">
+                        <label>SubTitle:</label>
+                        <input class="form-control" type="text" id="subtitle" placeholder="副标题">
+                    </div>
+                    <div class="form-group">
+                        <label>Content:</label>
+                        <!--style给定宽度可以影响编辑器的最终宽度-->
+                        <script type="text/plain" id="content" style="width:98%; height:240px;">
+
+                        </script>
+                    </div>
+                </div>
+                <div class="box-footer">
+                    <div class="pull-right">
+                        <button type="button" id="clear" class="btn btn-default"><i class="fa fa-undo"></i> Clear</button>
+                        <button type="button" id="preview" class="btn btn-default"><i class="fa fa-eye"></i> Preview</button>
+                        <button type="submit" id="save" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalview" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myModalLabel">文章预览</h4>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+    <input type="hidden" id="oldData" />
+</section>
+<script type="text/javascript">
+    //实例化编辑器
+    var um = UM.getEditor('content');
+    var aid = 0;
+    $(function () {
+        aid = queryString('aid');
+        if (aid && aid > 0) {
+            ApiClient.Request('Article', 'Get', { id: aid }, function (e) {
+                if (e.status == 1) {
+                    $('#title').val(e.data.Title);
+                    $('#subtitle').val(e.data.Subtitle);
+                    um.setContent(decodeURI(e.data.Content));
+                    $('#oldData').attr('data-id', e.data.Id);
+                } else {
+                    console(e.msg || '请求失败');
+                    aid = 0;
+                }
+            })
+        }
+
+        $('#clear').bind('click', clear);
+        $('#preview').bind('click', preview);
+        $('#save').bind('click', save);
+    })
+    function save() {
+        var param = {
+            Title: $('#title').val(),
+            Subtitle: $('#subtitle').val(),
+            Content: encodeURI(um.getContent())
+        }
+        var action = 'Create';
+        if (aid > 0) {
+            action = 'Update';
+            param.Id = $('#oldData').attr('data-id');
+        }
+        ApiClient.Request('Article', action, param, function (e) {
+            if (e.status == 1) {
+                alert('保持成功');
+            } else {
+                alert(e.msg || '请求失败');
+            }
+        })
+    }
+    function clear() {
+        $('#title').val('');
+        $('#subtitle').val('');
+        um.setContent('');
+    }
+    function preview() {
+        $.ajax({
+            url: '/content/html/preview.html',
+            type: 'get',
+            dataType: 'html',
+            success: function (result) {
+                $('.modal-body').html(result);
+                $('.modal-body .txt-title-view_1').html($('#title').val());
+                $('.modal-body #author').html($.cookie('CurrentUser'));
+                $('.modal-body .time').html('发布于 ' + new Date().toLocaleString());
+                $('.modal-body #area-player').html(um.getContent());
+                $('#modalview').modal();
+            }
+        })
+    }
+</script>

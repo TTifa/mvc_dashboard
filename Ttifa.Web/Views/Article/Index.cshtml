@@ -1,0 +1,139 @@
+﻿
+@{
+    ViewBag.Title = "Article";
+}
+
+@section header{
+    <link href="~/Content/datatable/dataTables.bootstrap.css" rel="stylesheet" />
+}
+<section class="content-header">
+    <h1>
+        Articles
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a href="#">Artilce</a></li>
+        <li class="active">Index</li>
+    </ol>
+</section>
+<section class="content">
+    <div class="box">
+        <div class="box-body">
+            <table id="example1" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>SubTitle</th>
+                        <th>UpdateTime</th>
+                        <th>Author</th>
+                        <th>Operate</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>SubTitle</th>
+                        <th>UpdateTime</th>
+                        <th>Author</th>
+                        <th>Operate</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <!-- /.box-body -->
+    </div>
+</section>
+<div class="modal fade" id="modalview" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="myModalLabel">文章预览</h4>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+
+@*<script src="~/Content/datatable/jquery.dataTables.min.js"></script>*@
+<script src="~/Content/datatable/jquery.dataTables.js"></script>
+<script src="~/Content/datatable/dataTables.bootstrap.min.js"></script>
+<script>
+    $(function () {
+        var table = $("#example1").DataTable({
+            lengthChange: false,//分页大小调整
+            searching: false,
+            pageLength: 10,//分页大小
+            ordering: false,
+            serverSide: true,  //启用服务器端分页
+            order: [],  //取消默认排序查询,否则复选框一列会出现小箭头
+            ajax: function (data, callback, settings) {
+                //封装请求参数
+                var param = {};
+                param.pagesize = data.length;//页面显示记录条数，在页面显示每页显示多少项的时候
+                param.pageindex = (data.start / data.length) + 1;//当前页码
+                //ajax请求数据
+                ApiClient.Request('Article', 'List', param, function (result) {
+                    if (result.status != 1) {
+                        alert(result.msg || '获取失败');
+                        return;
+                    }
+                    //封装返回数据
+                    var returnData = {};
+                    returnData.draw = data.draw;//这里直接自行返回了draw计数器,应该由后台返回
+                    returnData.recordsTotal = result.page.total;//返回数据全部记录
+                    returnData.recordsFiltered = result.page.total;//后台不实现过滤功能，每次查询均视作全部结果
+                    returnData.data = result.data;//返回的数据列表
+                    callback(returnData);
+                })
+            },
+            columns: [
+                { "data": "Id" },
+                { "data": "Title" },
+                { "data": "Subtitle" },
+                { "data": "UpdateTime" },
+                { "data": "Author" },
+                {
+                    "data": function (rowData, type, set, meta) {
+                        var btn = '<a href="javascript:preview(' + rowData.Id + ')">预览</a>';
+                        btn += '&nbsp;|&nbsp;<a href="/Article/Edit?aid=' + rowData.Id + '">编辑</a>';
+                        return btn;
+                    }
+                },
+            ]
+        });
+    })
+    function reload() {
+        table.ajax.reload();//分页重置
+        table.ajax.reload(null, false);//分页信息保留
+    }
+    function preview(id) {
+        $.ajax({
+            url: '/content/html/preview.html',
+            type: 'get',
+            dataType: 'html',
+            success: function (result) {
+                $('.modal-body').html(result);
+                ApiClient.Request('Article', 'Get', { id: id }, function (e) {
+                    if (e.status != 1) {
+                        alert(e.msg || '获取失败');
+                        return;
+                    }
+                    $('.modal-body .txt-title-view_1').html(e.data.Title);
+                    $('.modal-body #author').html(e.data.Author);
+                    $('.modal-body .time').html('发布于 ' + e.data.UpdateTime);
+                    $('.modal-body #area-player').html(decodeURI(e.data.Content));
+                });
+                $('#modalview').modal('show');
+            }
+        })
+    }
+</script>
